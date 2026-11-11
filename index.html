@@ -1,0 +1,69 @@
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BACKWOODS 360°</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101810;color:#f4f1e8;font-family:Arial,sans-serif}
+header{background:#263b29;padding:22px 16px;text-align:center}
+header h1{margin:0;font-size:27px;letter-spacing:2px}
+header p{color:#d0c7a5;margin:8px 0 0;font-size:12px}
+nav{display:flex;overflow-x:auto;background:#1c281e}
+nav button{flex:1;min-width:90px;padding:15px 8px;border:0;background:none;color:white;font-weight:bold}
+nav button.active{background:#718344}
+main{padding:18px;max-width:800px;margin:auto}
+h2{color:#d4c18a}
+.panel{background:#202d22;border:1px solid #40513b;border-radius:12px;padding:18px;margin:14px 0}
+.tile{background:#30412e;border-radius:10px;padding:16px;margin:10px 0}
+button.action{background:#82944e;color:white;border:0;padding:12px 16px;border-radius:7px;font-weight:bold}
+input,select{width:100%;padding:12px;margin:8px 0;background:#172219;color:white;border:1px solid #66745a;border-radius:6px}
+.small{color:#c1c5b5;font-size:13px}
+footer{text-align:center;padding:25px;color:#999;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>BACKWOODS 360°</h1>
+<p>HUNT • FISH • MAP • EXPLORE • CONNECT • EXCHANGE</p>
+</header>
+<nav>
+<button class="active" onclick="show('map',this)">MAP</button>
+<button onclick="show('scout',this)">SCOUT</button>
+<button onclick="show('harvest',this)">HARVEST</button>
+<button onclick="show('exchange',this)">EXCHANGE</button>
+<button onclick="show('profile',this)">PROFILE</button>
+</nav>
+<main id="content">
+<h2>Your Outdoor World</h2>
+<div class="panel">
+<h3>Hunting & Fishing Map</h3>
+<p>Explore property boundaries, landowners, public hunting lands and fishing locations across all 50 states.</p>
+<button class="action" onclick="show('map')">Explore Maps</button>
+</div>
+<div class="tile">🌙 Moon phases & wildlife activity</div>
+<div class="tile">🦌 Deer scouting & harvest reports</div>
+<div class="tile">🎣 Fishing reports & catches</div>
+<div class="tile">🛒 Buy, sell & trade outdoor gear</div>
+<p class="small">BACKWOODS 360° — Your outdoors, all in one place.</p>
+</main>
+<footer>BACKWOODS 360° | Built for the outdoors</footer>
+<script>
+function show(page,button){
+document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+if(button)button.classList.add('active');
+const pages={
+map:`<h2>Nationwide Hunting Maps</h2><div class="panel"><h3>Explore all 50 states</h3><p>Property boundaries, landowner information, public hunting land, game lands and terrain maps.</p><select><option>Select a state</option>${["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"].map(s=>`<option>${s}</option>`).join("")}</select><p class="small">Map and property data connections will be added in the next development stage.</p></div>`,
+scout:`<h2>Scouting</h2><div class="panel"><h3>Save a scouting location</h3><input placeholder="Location name"><select><option>Choose type</option><option>Deer stand</option><option>Blind</option><option>Trail camera</option><option>Rub or scrape</option><option>Food plot</option><option>Fishing spot</option><option>Other</option></select><button class="action" onclick="alert('Scouting tools are being built next.')">Save Location</button></div><div class="tile">GPS tracking and trail recording</div><div class="tile">Weather, wind and moon phases</div>`,
+harvest:`<h2>Harvest Reports</h2><div class="panel"><h3>Share your harvest</h3><input placeholder="County"><select><option>Select state</option><option>North Carolina</option><option>Tennessee</option><option>Other state</option></select><select><option>Species</option><option>Whitetail deer</option><option>Turkey</option><option>Bear</option><option>Other</option></select><select><option>Weapon</option><option>Bow</option><option>Crossbow</option><option>Rifle</option><option>Muzzleloader</option></select><input type="date"><button class="action" onclick="alert('Harvest reporting will be connected to your account in a later stage.')">Submit Report</button></div>`,
+exchange:`<h2>Backwoods Exchange</h2><div class="panel"><h3>Outdoor Gear Marketplace</h3><p>Buy, sell and trade hunting, fishing and camping equipment.</p><div class="tile">🏹 Bows & hunting equipment</div><div class="tile">🎣 Fishing rods & tackle</div><div class="tile">🚙 ATVs, UTVs & trailers</div><div class="tile">🏕️ Blinds, stands & camping gear</div><button class="action" onclick="alert('Marketplace accounts and listings are coming next.')">Create Listing</button></div>`,
+profile:`<h2>Your Profile</h2><div class="panel"><h3>Welcome to BACKWOODS 360°</h3><p>Create your outdoor profile, connect with other hunters and anglers, and manage your saved locations and reports.</p><p class="small">Account registration and photo uploads will be added in a later stage.</p></div>`
+};
+document.getElementById('content').innerHTML=pages[page]||pages.map;
+}
+</script>
+</body>
+</html>
