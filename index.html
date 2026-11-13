@@ -10,6 +10,9 @@ HTML
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+HTML
+<script src="https://unpkg.com/esri-leaflet@3.0.14/dist/esri-leaflet.js"></script>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101810;color:#f4f1e8;font-family:Arial,sans-serif}
@@ -131,12 +134,84 @@ if(button)button.classList.add('active');
 const pages={
 
 map:`
-<h2>Nationwide Hunting Maps</h2>
-<div class="panel">
-<h3>Explore all 50 states</h3>
-<p>Select a state to move the map.</p>
+JavaScript
 
-<select id="stateSelect" onchange="moveToState()">
+function loadMap(){
+const mapElement=document.getElementById("map");
+const status=document.getElementById("mapStatus");
+
+if(!mapElement)return;
+
+if(typeof L==="undefined" || !L.esri){
+status.textContent="Map connection did not load. Check your internet connection.";
+return;
+}
+
+outdoorMap=L.map("map").setView([39.5,-98.35],4);
+
+const street=L.tileLayer(
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+attribution:'&copy; OpenStreetMap contributors'
+}
+).addTo(outdoorMap);
+
+const terrain=L.tileLayer(
+"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+{
+maxZoom:17,
+attribution:'&copy; OpenStreetMap contributors | OpenTopoMap'
+}
+);
+
+const publicAccess=L.esri.featureLayer({
+url:"https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/PADUS_Public_Access/FeatureServer/0",
+
+where:"Pub_Access = 'OA' OR Pub_Access = 'RA'",
+
+style:function(feature){
+const access=feature.properties.Pub_Access;
+return {
+color:access==="OA"?"#39c66b":"#e5a832",
+weight:2,
+fillColor:access==="OA"?"#39c66b":"#e5a832",
+fillOpacity:0.25
+};
+},
+
+onEachFeature:function(feature,layer){
+const p=feature.properties;
+const access=p.Pub_Access==="OA"?"Open access": "Restricted access";
+const name=p.BndryName||p.Unit_Nm||"Unnamed area";
+const manager=p.MngNm_Desc||"Not listed";
+const acres=p.GIS_AcrsDb||p.GIS_Acres||"Not available";
+
+layer.bindPopup(
+"<b>"+L.Util.escapeHTML(name)+"</b><br>"+
+"Access: "+access+"<br>"+
+"Manager: "+L.Util.escapeHTML(manager)+"<br>"+
+"Acres: "+acres+"<br>"+
+"<small>USGS PAD-US public access data. Verify local rules before entering or hunting.</small>"
+);
+}
+}).addTo(outdoorMap);
+
+L.control.layers(
+{
+"Street Map":street,
+"Topographic Map":terrain
+},
+{
+"Public Access Areas":publicAccess
+}
+).addTo(outdoorMap);
+
+L.control.scale().addTo(outdoorMap);
+
+status.textContent="Map ready! Green = open access; orange = restricted access. Tap an area for details.";
+}
+
 <option value="">Choose a state</option>
 ${Object.keys(states).map(s=>`<option>${s}</option>`).join("")}
 </select>
