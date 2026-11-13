@@ -6,35 +6,37 @@ HTML
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BACKWOODS 360°</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-HTML
-<script src="https://unpkg.com/esri-leaflet@3.0.14/dist/esri-leaflet.js"></script>
-
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101810;color:#f4f1e8;font-family:Arial,sans-serif}
-header{background:#263b29;padding:22px 16px;text-align:center}
+header{background:#263b29;padding:20px 12px;text-align:center}
 header h1{margin:0;font-size:27px;letter-spacing:2px}
-header p{color:#d0c7a5;margin:8px 0 0;font-size:12px}
-nav{display:flex;overflow-x:auto;background:#1c281e}
-nav button{flex:1;min-width:90px;padding:15px 8px;border:0;background:none;color:white;font-weight:bold}
+header p{color:#d0c7a5;font-size:11px}
+nav{display:flex;overflow-x:auto;background:#1c281e;position:sticky;top:0;z-index:1000}
+nav button{flex:1;min-width:82px;padding:14px 7px;border:0;background:none;color:white;font-weight:bold}
 nav button.active{background:#718344}
-main{padding:18px;max-width:900px;margin:auto}
+main{padding:15px;max-width:850px;margin:auto}
 h2{color:#d4c18a}
-.panel{background:#202d22;border:1px solid #40513b;border-radius:12px;padding:18px;margin:14px 0}
-.tile{background:#30412e;border-radius:10px;padding:16px;margin:10px 0}
-button.action{background:#82944e;color:white;border:0;padding:12px 16px;border-radius:7px;font-weight:bold;margin:5px 4px 5px 0}
-input,select{width:100%;padding:12px;margin:8px 0;background:#172219;color:white;border:1px solid #66745a;border-radius:6px}
-.small{color:#c1c5b5;font-size:13px}
-#map{height:440px;width:100%;border-radius:10px;margin-top:12px;background:#263b29}
+h3{color:#e1d7b5}
+.panel{background:#202d22;border:1px solid #40513b;border-radius:12px;padding:16px;margin:13px 0}
+.tile{background:#30412e;border-radius:10px;padding:15px;margin:10px 0}
+button.action{background:#82944e;color:white;border:0;padding:12px 16px;border-radius:7px;font-weight:bold;margin:5px 3px;cursor:pointer}
+button.secondary{background:#465844;color:white;border:1px solid #82944e;padding:10px;border-radius:7px}
+input,select{width:100%;padding:12px;margin:7px 0;background:#172219;color:white;border:1px solid #66745a;border-radius:6px}
+label{display:block;color:#d9d5c4;font-size:13px;margin-top:8px}
+.small{color:#c1c5b5;font-size:12px;line-height:1.5}
+.result{background:#172219;border:1px solid #82944e;padding:16px;border-radius:10px;margin-top:14px}
+.score{font-size:30px;color:#e3d29a;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#map{height:420px;border-radius:10px;margin-top:12px}
 footer{text-align:center;padding:25px;color:#999;font-size:12px}
+hr{border:0;border-top:1px solid #526047;margin:17px 0}
+.hidden{display:none}
 </style>
 </head>
-
 <body>
+
 <header>
 <h1>BACKWOODS 360°</h1>
 <p>HUNT • FISH • MAP • EXPLORE • CONNECT • EXCHANGE</p>
@@ -44,342 +46,368 @@ footer{text-align:center;padding:25px;color:#999;font-size:12px}
 <button class="active" onclick="show('map',this)">MAP</button>
 <button onclick="show('scout',this)">SCOUT</button>
 <button onclick="show('harvest',this)">HARVEST</button>
+<button onclick="show('scores',this)">SCORES</button>
 <button onclick="show('exchange',this)">EXCHANGE</button>
 <button onclick="show('profile',this)">PROFILE</button>
 </nav>
 
-<main id="content">
-<h2>Your Outdoor World</h2>
-<div class="panel">
-<h3>Hunting & Fishing Map</h3>
-<p>Explore hunting and fishing locations across all 50 states.</p>
-<button class="action" onclick="show('map')">Explore Maps</button>
-</div>
-<div class="tile">🌙 Moon phases & wildlife activity</div>
-<div class="tile">🦌 Deer scouting & harvest reports</div>
-<div class="tile">🎣 Fishing reports & catches</div>
-<div class="tile">🛒 Buy, sell & trade outdoor gear</div>
-<p class="small">BACKWOODS 360° — Your outdoors, all in one place.</p>
-</main>
+<main id="content"></main>
 
 <footer>BACKWOODS 360° | Built for the outdoors</footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let outdoorMap = null;
-let locationMarker = null;
-
-const states = {
-"Alabama":[32.8,-86.8],
-"Alaska":[64,-152],
-"Arizona":[34.2,-111.9],
-"Arkansas":[34.8,-92.4],
-"California":[37.2,-119.5],
-"Colorado":[39,-105.5],
-"Connecticut":[41.6,-72.7],
-"Delaware":[39,-75.4],
-"Florida":[28,-82],
-"Georgia":[32.6,-83.5],
-"Hawaii":[20.8,-157.5],
-"Idaho":[44,-114.5],
-"Illinois":[40,-89.2],
-"Indiana":[40,-86.1],
-"Iowa":[42,-93.5],
-"Kansas":[38.5,-98.3],
-"Kentucky":[37.8,-85.3],
-"Louisiana":[31,-91.5],
-"Maine":[45.3,-69],
-"Maryland":[39,-76.7],
-"Massachusetts":[42.3,-71.8],
-"Michigan":[44,-85.5],
-"Minnesota":[46,-94.5],
-"Mississippi":[32.7,-89.7],
-"Missouri":[38.5,-92.5],
-"Montana":[47,-110.5],
-"Nebraska":[41.5,-99.8],
-"Nevada":[39,-116.7],
-"New Hampshire":[43.8,-71.5],
-"New Jersey":[40,-74.5],
-"New Mexico":[34.5,-106],
-"New York":[43,-75.5],
-"North Carolina":[35.5,-79.8],
-"North Dakota":[47.5,-100.5],
-"Ohio":[40.3,-82.8],
-"Oklahoma":[35.5,-97.3],
-"Oregon":[44,-120.5],
-"Pennsylvania":[41,-77.8],
-"Rhode Island":[41.6,-71.5],
-"South Carolina":[33.8,-80.9],
-"South Dakota":[44.5,-100],
-"Tennessee":[35.8,-86],
-"Texas":[31,-99],
-"Utah":[39.3,-111.5],
-"Vermont":[44,-72.7],
-"Virginia":[37.5,-79],
-"Washington":[47.4,-120.5],
-"West Virginia":[38.6,-80.5],
-"Wisconsin":[44.5,-89.8],
-"Wyoming":[43,-107.5]
+const states={
+"Alabama":[32.8067,-86.7911],"Alaska":[64.2008,-149.4937],
+"Arizona":[34.0489,-111.0937],"Arkansas":[34.9697,-92.3731],
+"California":[36.7783,-119.4179],"Colorado":[39.5501,-105.7821],
+"Connecticut":[41.6032,-73.0877],"Delaware":[38.9108,-75.5277],
+"Florida":[27.6648,-81.5158],"Georgia":[32.1656,-82.9001],
+"Hawaii":[19.8968,-155.5828],"Idaho":[44.0682,-114.7420],
+"Illinois":[40.6331,-89.3985],"Indiana":[40.2672,-86.1349],
+"Iowa":[41.8780,-93.0977],"Kansas":[39.0119,-98.4842],
+"Kentucky":[37.8393,-84.2700],"Louisiana":[30.9843,-91.9623],
+"Maine":[45.2538,-69.4455],"Maryland":[39.0458,-76.6413],
+"Massachusetts":[42.4072,-71.3824],"Michigan":[44.3148,-85.6024],
+"Minnesota":[46.7296,-94.6859],"Mississippi":[32.3547,-89.3985],
+"Missouri":[37.9643,-91.8318],"Montana":[46.8797,-110.3626],
+"Nebraska":[41.4925,-99.9018],"Nevada":[38.8026,-116.4194],
+"New Hampshire":[43.1939,-71.5724],"New Jersey":[40.0583,-74.4057],
+"New Mexico":[34.5199,-105.8701],"New York":[43.0000,-75.0000],
+"North Carolina":[35.7596,-79.0193],"North Dakota":[47.5515,-101.0020],
+"Ohio":[40.4173,-82.9071],"Oklahoma":[35.4676,-97.5164],
+"Oregon":[43.8041,-120.5542],"Pennsylvania":[41.2033,-77.1945],
+"Rhode Island":[41.5801,-71.4774],"South Carolina":[33.8361,-81.1637],
+"South Dakota":[43.9695,-99.9018],"Tennessee":[35.5175,-86.5804],
+"Texas":[31.9686,-99.9018],"Utah":[39.3210,-111.0937],
+"Vermont":[44.5588,-72.5778],"Virginia":[37.4316,-78.6569],
+"Washington":[47.7511,-120.7401],"West Virginia":[38.5976,-80.4549],
+"Wisconsin":[43.7844,-88.7879],"Wyoming":[43.0760,-107.2903]
 };
+
+let map=null;
+let topo=false;
 
 function show(page,button){
-if(outdoorMap){
-outdoorMap.remove();
-outdoorMap=null;
-locationMarker=null;
-}
-
 document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
 if(button)button.classList.add('active');
+const content=document.getElementById('content');
 
 const pages={
-
 map:`
-JavaScript
-
-function loadMap(){
-const mapElement=document.getElementById("map");
-const status=document.getElementById("mapStatus");
-
-if(!mapElement)return;
-
-if(typeof L==="undefined" || !L.esri){
-status.textContent="Map connection did not load. Check your internet connection.";
-return;
-}
-
-outdoorMap=L.map("map").setView([39.5,-98.35],4);
-
-const street=L.tileLayer(
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-maxZoom:19,
-attribution:'&copy; OpenStreetMap contributors'
-}
-).addTo(outdoorMap);
-
-const terrain=L.tileLayer(
-"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-{
-maxZoom:17,
-attribution:'&copy; OpenStreetMap contributors | OpenTopoMap'
-}
-);
-
-const publicAccess=L.esri.featureLayer({
-url:"https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/PADUS_Public_Access/FeatureServer/0",
-
-where:"Pub_Access = 'OA' OR Pub_Access = 'RA'",
-
-style:function(feature){
-const access=feature.properties.Pub_Access;
-return {
-color:access==="OA"?"#39c66b":"#e5a832",
-weight:2,
-fillColor:access==="OA"?"#39c66b":"#e5a832",
-fillOpacity:0.25
-};
-},
-
-onEachFeature:function(feature,layer){
-const p=feature.properties;
-const access=p.Pub_Access==="OA"?"Open access": "Restricted access";
-const name=p.BndryName||p.Unit_Nm||"Unnamed area";
-const manager=p.MngNm_Desc||"Not listed";
-const acres=p.GIS_AcrsDb||p.GIS_Acres||"Not available";
-
-layer.bindPopup(
-"<b>"+L.Util.escapeHTML(name)+"</b><br>"+
-"Access: "+access+"<br>"+
-"Manager: "+L.Util.escapeHTML(manager)+"<br>"+
-"Acres: "+acres+"<br>"+
-"<small>USGS PAD-US public access data. Verify local rules before entering or hunting.</small>"
-);
-}
-}).addTo(outdoorMap);
-
-L.control.layers(
-{
-"Street Map":street,
-"Topographic Map":terrain
-},
-{
-"Public Access Areas":publicAccess
-}
-).addTo(outdoorMap);
-
-L.control.scale().addTo(outdoorMap);
-
-status.textContent="Map ready! Green = open access; orange = restricted access. Tap an area for details.";
-}
-
-<option value="">Choose a state</option>
-${Object.keys(states).map(s=>`<option>${s}</option>`).join("")}
+<h2>Nationwide Hunting Maps</h2>
+<div class="panel">
+<h3>Explore all 50 states</h3>
+<select id="stateSelect" onchange="goState(this.value)">
+<option value="">Select a state</option>
+${Object.keys(states).map(s=>`<option>${s}</option>`).join('')}
 </select>
-
-<button class="action" onclick="findMyLocation()">📍 Find My Location</button>
-
+<button class="action" onclick="toggleLayer()">Change Map Layer</button>
+<p class="small" id="layerName">Street Map</p>
 <div id="map"></div>
-<p class="small" id="mapStatus">Loading outdoor map...</p>
-</div>
-
-<div class="tile">🗺️ Property boundaries and acreage: next development stage</div>
-<div class="tile">🦌 Public hunting lands and game lands: next development stage</div>
-<div class="tile">📌 Save stands, blinds, trails and hunting spots: next development stage</div>
-`,
+<p class="small">Map layers are for exploration. Property boundaries, landowner records and verified hunting-access data are future data integrations. Public ownership does not automatically mean hunting is permitted.</p>
+</div>`,
 
 scout:`
 <h2>Scouting</h2>
 <div class="panel">
 <h3>Save a scouting location</h3>
-<input placeholder="Location name">
-<select>
-<option>Choose type</option>
-<option>Deer stand</option>
-<option>Blind</option>
-<option>Trail camera</option>
-<option>Rub or scrape</option>
-<option>Food plot</option>
-<option>Fishing spot</option>
-<option>Other</option>
+<input id="scoutName" placeholder="Location name">
+<select id="scoutType">
+<option>Deer stand</option><option>Blind</option>
+<option>Trail camera</option><option>Rub or scrape</option>
+<option>Food plot</option><option>Fishing spot</option>
 </select>
-<button class="action" onclick="alert('Scouting tools are coming in a future update.')">Save Location</button>
+<button class="action" onclick="saveScout()">Save Location</button>
+<div id="scoutSaved"></div>
 </div>
-<div class="tile">GPS tracking and trail recording</div>
-<div class="tile">Weather, wind and moon phases</div>
-`,
+<div class="tile">🌙 Moon phases and wildlife activity</div>
+<div class="tile">🌬️ Weather and wind information</div>
+<div class="tile">📍 GPS tracking and trail recording coming next</div>`,
 
 harvest:`
 <h2>Harvest Reports</h2>
 <div class="panel">
 <h3>Share your harvest</h3>
 <input placeholder="County">
-<select>
-<option>Select state</option>
-${Object.keys(states).map(s=>`<option>${s}</option>`).join("")}
-</select>
-<select>
-<option>Species</option>
-<option>Whitetail deer</option>
-<option>Turkey</option>
-<option>Bear</option>
-<option>Other</option>
-</select>
-<select>
-<option>Weapon</option>
-<option>Bow</option>
-<option>Crossbow</option>
-<option>Rifle</option>
-<option>Muzzleloader</option>
-</select>
+<select><option>Select state</option>${Object.keys(states).map(s=>`<option>${s}</option>`).join('')}</select>
+<select><option>Species</option><option>Whitetail deer</option><option>Turkey</option><option>Bear</option><option>Other</option></select>
+<select><option>Weapon</option><option>Bow</option><option>Crossbow</option><option>Rifle</option><option>Muzzleloader</option></select>
 <input type="date">
-<button class="action" onclick="alert('Harvest reporting will be connected to your account in a later stage.')">Submit Report</button>
+<button class="action" onclick="alert('Harvest accounts and online reporting are coming in a later development stage.')">Submit Report</button>
+</div>`,
+
+scores:`
+<h2>🏆 BACKWOODS TROPHY SCORES</h2>
+<p class="small">Two separate tools to measure and keep track of your outdoor trophies.</p>
+<div class="panel">
+<h3>🦌 THE RACKULATOR</h3>
+<p>Measure your buck's rack and calculate an estimated gross and net typical score.</p>
+<button class="action" onclick="show('rack')">OPEN THE RACKULATOR</button>
 </div>
-`,
+<div class="panel">
+<h3>🦃 GOBBLE GAUGE</h3>
+<p>Measure beard, both spurs and weight to calculate your turkey score.</p>
+<button class="action" onclick="show('gobble')">OPEN GOBBLE GAUGE</button>
+</div>
+<button class="secondary" onclick="show('trophies')">My Saved Trophies</button>`,
+
+rack:`
+<h2>🦌 THE RACKULATOR</h2>
+<p class="small">Enter measurements in inches. Use the same units for every measurement.</p>
+<div class="panel">
+<h3>Buck Information</h3>
+<input id="buckName" placeholder="Buck nickname or trophy name">
+<div class="grid">
+<div><label>State</label><select id="buckState">${Object.keys(states).map(s=>`<option>${s}</option>`).join('')}</select></div>
+<div><label>County</label><input id="buckCounty" placeholder="County"></div>
+</div>
+<label>Inside spread (inches)</label>
+<input id="spread" type="number" min="0" step=".125" placeholder="Example: 18">
+<hr>
+<h3>Right Antler</h3>
+<label>Main beam</label><input id="rb" type="number" min="0" step=".125">
+${[1,2,3,4,5].map(n=>`<label>Right G${n} tine length</label><input id="rg${n}" type="number" min="0" step=".125">`).join('')}
+${[1,2,3,4].map(n=>`<label>Right H${n} circumference</label><input id="rh${n}" type="number" min="0" step=".125">`).join('')}
+<hr>
+<h3>Left Antler</h3>
+<label>Main beam</label><input id="lb" type="number" min="0" step=".125">
+${[1,2,3,4,5].map(n=>`<label>Left G${n} tine length</label><input id="lg${n}" type="number" min="0" step=".125">`).join('')}
+${[1,2,3,4].map(n=>`<label>Left H${n} circumference</label><input id="lh${n}" type="number" min="0" step=".125">`).join('')}
+<hr>
+<h3>Abnormal points</h3>
+<p class="small">Enter the combined length of abnormal points on each side. These are deductions for the estimated net typical score.</p>
+<label>Right abnormal point total</label><input id="ra" type="number" min="0" step=".125" value="0">
+<label>Left abnormal point total</label><input id="la" type="number" min="0" step=".125" value="0">
+<button class="action" onclick="calculateRack()">CALCULATE MY RACK</button>
+<div id="rackResult"></div>
+</div>
+<button class="secondary" onclick="show('scores')">Back to Scores</button>`,
+
+gobble:`
+<h2>🦃 GOBBLE GAUGE</h2>
+<p class="small">NWTF-style turkey scoring. Enter lengths in inches and weight in pounds and ounces.</p>
+<div class="panel">
+<label>Turkey name</label><input id="turkeyName" placeholder="Gobble name or trophy name">
+<div class="grid">
+<div><label>State</label><select id="turkeyState">${Object.keys(states).map(s=>`<option>${s}</option>`).join('')}</select></div>
+<div><label>County</label><input id="turkeyCounty" placeholder="County"></div>
+</div>
+<h3>Turkey Measurements</h3>
+<label>Beard length (inches)</label>
+<input id="beard" type="number" min="0" step=".0625" placeholder="Example: 10.5">
+<div class="grid">
+<div><label>Left spur (inches)</label><input id="leftSpur" type="number" min="0" step=".0625"></div>
+<div><label>Right spur (inches)</label><input id="rightSpur" type="number" min="0" step=".0625"></div>
+</div>
+<div class="grid">
+<div><label>Weight (pounds)</label><input id="weightLb" type="number" min="0" step="1"></div>
+<div><label>Additional ounces</label><input id="weightOz" type="number" min="0" max="15" step="1"></div>
+</div>
+<button class="action" onclick="calculateTurkey()">CALCULATE MY TURKEY</button>
+<div id="turkeyResult"></div>
+</div>
+<button class="secondary" onclick="show('scores')">Back to Scores</button>`,
+
+trophies:`
+<h2>🏆 MY SAVED TROPHIES</h2>
+<div id="trophyList"></div>
+<button class="secondary" onclick="show('scores')">Back to Scores</button>`,
 
 exchange:`
 <h2>Backwoods Exchange</h2>
 <div class="panel">
 <h3>Outdoor Gear Marketplace</h3>
 <p>Buy, sell and trade hunting, fishing and camping equipment.</p>
-<div class="tile">🏹 Bows & hunting equipment</div>
-<div class="tile">🎣 Fishing rods & tackle</div>
-<div class="tile">🚙 ATVs, UTVs & trailers</div>
-<div class="tile">🏕️ Blinds, stands & camping gear</div>
-<button class="action" onclick="alert('Marketplace accounts and listings are coming next.')">Create Listing</button>
-</div>
-`,
+<div class="tile">🏹 Bows and hunting equipment</div>
+<div class="tile">🎣 Fishing rods and tackle</div>
+<div class="tile">🚙 ATVs, UTVs and trailers</div>
+<div class="tile">🏕️ Blinds, stands and camping gear</div>
+<p class="small">Online listings and transactions will be connected in a later development stage.</p>
+</div>`,
 
 profile:`
 <h2>Your Profile</h2>
 <div class="panel">
 <h3>Welcome to BACKWOODS 360°</h3>
 <p>Create your outdoor profile, connect with other hunters and anglers, and manage your saved locations and reports.</p>
-<p class="small">Account registration and photo uploads will be added in a later stage.</p>
-</div>
-`
+<p class="small">Account registration and cloud photo uploads are future features.</p>
+</div>`
 };
 
-document.getElementById("content").innerHTML=pages[page]||pages.map;
-
-if(page==="map"){
-setTimeout(loadMap,150);
-}
-}
-
-function loadMap(){
-const mapElement=document.getElementById("map");
-const status=document.getElementById("mapStatus");
-
-if(!mapElement)return;
-
-if(typeof L==="undefined"){
-status.textContent="Map library did not load. Check your internet connection.";
-return;
+content.innerHTML=pages[page]||pages.map;
+if(page==='map')initMap();
+if(page==='trophies')renderTrophies();
+if(page==='scout')renderScouts();
 }
 
-outdoorMap=L.map("map").setView([39.5,-98.35],4);
-
-const street=L.tileLayer(
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-maxZoom:19,
-attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}
-).addTo(outdoorMap);
-
-const terrain=L.tileLayer(
-"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-{
-maxZoom:17,
-attribution:'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
-}
-);
-
-L.control.layers({
-"Street Map":street,
-"Topographic Map":terrain
-}).addTo(outdoorMap);
-
-L.control.scale().addTo(outdoorMap);
-
-status.textContent="Map ready! Choose a state or explore the map.";
-}
-
-function moveToState(){
-const name=document.getElementById("stateSelect").value;
-if(!name||!outdoorMap)return;
-outdoorMap.flyTo(states[name],7);
-}
-
-function findMyLocation(){
-if(!navigator.geolocation){
-alert("Your browser does not support GPS location.");
-return;
-}
-
-navigator.geolocation.getCurrentPosition(
-position=>{
-const coords=[
-position.coords.latitude,
-position.coords.longitude
-];
-
-outdoorMap.flyTo(coords,15);
-
-if(locationMarker){
-locationMarker.setLatLng(coords);
+function initMap(){
+if(!map){
+map=L.map('map').setView(states["North Carolina"],7);
+window.streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap contributors'
+});
+window.topoLayer=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenTopoMap contributors'
+});
+window.streetLayer.addTo(map);
 }else{
-locationMarker=L.marker(coords).addTo(outdoorMap);
+setTimeout(()=>map.invalidateSize(),100);
+}
 }
 
-locationMarker.bindPopup("Your current location").openPopup();
-},
-()=>{
-alert("Location permission was not granted. Check your phone settings.");
-}
-);
+function goState(state){
+if(state&&map)map.setView(states[state],7);
 }
 
+function toggleLayer(){
+if(!map)return;
+if(!topo){
+map.removeLayer(window.streetLayer);
+window.topoLayer.addTo(map);
+topo=true;
+document.getElementById('layerName').textContent='Topographic Map';
+}else{
+map.removeLayer(window.topoLayer);
+window.streetLayer.addTo(map);
+topo=false;
+document.getElementById('layerName').textContent='Street Map';
+}
+}
+
+function num(id){
+return Math.max(0,Number(document.getElementById(id)?.value)||0);
+}
+
+function fmt(n){return n.toFixed(2);}
+
+function calculateRack(){
+const r={beam:num('rb'),tines:[1,2,3,4,5].map(n=>num('rg'+n)),circ:[1,2,3,4].map(n=>num('rh'+n))};
+const l={beam:num('lb'),tines:[1,2,3,4,5].map(n=>num('lg'+n)),circ:[1,2,3,4].map(n=>num('lh'+n))};
+const spread=num('spread');
+const spreadCredit=Math.min(spread,Math.max(r.beam,l.beam));
+const sideTotal=s=>s.beam+s.tines.reduce((a,b)=>a+b,0)+s.circ.reduce((a,b)=>a+b,0);
+const gross=sideTotal(r)+sideTotal(l)+spreadCredit;
+let deductions=Math.abs(r.beam-l.beam);
+for(let i=0;i<5;i++)deductions+=Math.abs(r.tines[i]-l.tines[i]);
+for(let i=0;i<4;i++)deductions+=Math.abs(r.circ[i]-l.circ[i]);
+deductions+=num('ra')+num('la');
+const net=Math.max(0,gross-deductions);
+const result={
+type:'Buck',name:document.getElementById('buckName').value||'Unnamed buck',
+state:document.getElementById('buckState').value,
+county:document.getElementById('buckCounty').value,
+gross,net,date:new Date().toLocaleDateString()
+};
+document.getElementById('rackResult').innerHTML=`
+<div class="result">
+<h3>YOUR RACK RESULTS</h3>
+<p>Estimated gross typical score</p><div class="score">${fmt(gross)}"</div>
+<p>Estimated net typical score</p><div class="score">${fmt(net)}"</div>
+<p class="small">Estimated deductions: ${fmt(deductions)} inches. Spread credit used: ${fmt(spreadCredit)} inches.</p>
+<button class="action" onclick='saveTrophy(${JSON.stringify(result)})'>SAVE MY BUCK</button>
+<button class="secondary" onclick='shareResult(${JSON.stringify(result)})'>SHARE RESULTS</button>
+</div>`;
+}
+
+function calculateTurkey(){
+const beard=num('beard'),left=num('leftSpur'),right=num('rightSpur');
+const pounds=num('weightLb'),ounces=num('weightOz');
+if(ounces>15){
+alert('Please enter 0 to 15 ounces.');
+return;
+}
+const weight=pounds+ounces/16;
+const beardPoints=beard*2;
+const spurPoints=(left+right)*10;
+const total=weight+beardPoints+spurPoints;
+const result={
+type:'Turkey',name:document.getElementById('turkeyName').value||'Unnamed turkey',
+state:document.getElementById('turkeyState').value,
+county:document.getElementById('turkeyCounty').value,
+score:total,beard,left,right,weight,date:new Date().toLocaleDateString()
+};
+document.getElementById('turkeyResult').innerHTML=`
+<div class="result">
+<h3>YOUR GOBBLE GAUGE SCORE</h3>
+<div class="score">${fmt(total)} points</div>
+<p>Weight: ${fmt(weight)} points</p>
+<p>Beard: ${fmt(beardPoints)} points</p>
+<p>Spurs: ${fmt(spurPoints)} points</p>
+<button class="action" onclick='saveTrophy(${JSON.stringify(result)})'>SAVE MY TURKEY</button>
+<button class="secondary" onclick='shareResult(${JSON.stringify(result)})'>SHARE RESULTS</button>
+</div>`;
+}
+
+function getTrophies(){
+try{return JSON.parse(localStorage.getItem('bw360_trophies')||'[]')}catch(e){return []}
+}
+
+function saveTrophy(trophy){
+const trophies=getTrophies();
+trophies.push(trophy);
+localStorage.setItem('bw360_trophies',JSON.stringify(trophies));
+alert('Trophy saved on this device!');
+}
+
+function renderTrophies(){
+const trophies=getTrophies();
+const box=document.getElementById('trophyList');
+if(!trophies.length){
+box.innerHTML='<div class="panel">No saved trophies yet. Calculate a buck or turkey score to get started!</div>';
+return;
+}
+box.innerHTML=trophies.map((t,i)=>`
+<div class="panel">
+<h3>${t.type==='Buck'?'🦌':'🦃'} ${escapeText(t.name)}</h3>
+<p>${escapeText(t.county||'')} ${escapeText(t.state||'')}</p>
+<strong>${t.type==='Buck'?'Gross: '+fmt(t.gross)+'" | Net: '+fmt(t.net)+'"':fmt(t.score)+' points'}</strong>
+<p class="small">${t.date}</p>
+<button class="secondary" onclick="deleteTrophy(${i})">Delete</button>
+</div>`).join('');
+}
+
+function deleteTrophy(i){
+const trophies=getTrophies();
+trophies.splice(i,1);
+localStorage.setItem('bw360_trophies',JSON.stringify(trophies));
+renderTrophies();
+}
+
+function shareResult(result){
+const text=result.type==='Buck'
+?`${result.name}: Estimated gross ${fmt(result.gross)} inches, estimated net ${fmt(result.net)} inches. BACKWOODS 360° THE RACKULATOR.`
+:`${result.name}: Gobble Gauge score ${fmt(result.score)} points. BACKWOODS 360°.`;
+if(navigator.share){
+navigator.share({title:'BACKWOODS 360° Trophy',text}).catch(()=>{});
+}else if(navigator.clipboard){
+navigator.clipboard.writeText(text).then(()=>alert('Results copied!'));
+}else{
+alert(text);
+}
+}
+
+function saveScout(){
+const name=document.getElementById('scoutName').value.trim();
+if(!name){alert('Enter a location name first.');return;}
+const list=JSON.parse(localStorage.getItem('bw360_scouts')||'[]');
+list.push({name,type:document.getElementById('scoutType').value});
+localStorage.setItem('bw360_scouts',JSON.stringify(list));
+document.getElementById('scoutName').value='';
+renderScouts();
+}
+
+function renderScouts(){
+const list=JSON.parse(localStorage.getItem('bw360_scouts')||'[]');
+const box=document.getElementById('scoutSaved');
+if(box)box.innerHTML=list.map(x=>`<div class="tile">${escapeText(x.name)} · ${escapeText(x.type)}</div>`).join('');
+}
+
+function escapeText(s){
+return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+show('map',document.querySelector('nav button'));
 </script>
 </body>
 </html>
