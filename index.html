@@ -1,30 +1,650 @@
-BACKWOODS 360°
-HUNT • FISH • MAP • EXPLORE • CONNECT • EXCHANGE
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BACKWOODS 360°</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101810;color:#f4f1e8;font-family:Arial,sans-serif}
+header{background:#1b291b;padding:20px;text-align:center;border-bottom:3px solid #d69b36}
+h1{color:#d69b36;margin:0}
+nav{display:flex;overflow-x:auto;background:#263826}
+button{background:#344b30;color:white;border:1px solid #536b43;padding:12px;border-radius:6px}
+main{padding:12px}
+.page{display:none}
+.page.active{display:block}
+.card{background:#1d2b1d;padding:15px;margin-bottom:12px;border-radius:10px}
+input,select,textarea{width:100%;padding:12px;margin:8px 0;background:#111a11;color:white;border:1px solid #536b43;border-radius:6px}
+#map{height:420px;width:100%;border-radius:8px}
+.action{width:100%;background:#536b35;margin-top:8px}
+</style>
+</head>
+<body>
+ PART 1C
+<header>
+<h1>BACKWOODS 360°</h1>
+<p>HUNT • FISH • MAP • EXPLORE • CONNECT • EXCHANGE</p>
+</header>
+<nav>
+<button onclick="showPage('mapPage')">MAP</button>
+<button onclick="showPage('scoutPage')">SCOUT</button>
+<button onclick="showPage('harvestPage')">HARVEST</button>
+<button onclick="showPage('scoresPage')">SCORES</button>
+<button onclick="showPage('exchangePage')">EXCHANGE</button>
+<button onclick="showPage('profilePage')">PROFILE</button>
+</nav>
+<main>
+<section id="mapPage" class="page active">
+<div class="card">
+<h2>Hunting Map & Live Wind</h2>
+<select id="stateSelect" onchange="changeState()">
+<option value="">Select a state</option>
+</select>
+<button onclick="findLocation()">My Location</button>
+<button onclick="changeLayer()">Change Map Layer</button>
+<button onclick="refreshWind()">Refresh Wind</button>
+<div id="map"></div>
+<p id="windStatus">Select a location to load wind
+ <div class="card">
+<h2>Stand Wind Analyzer</h2>
+<p>Check wind direction before entering your hunting area.</p>
+<input id="standName" placeholder="Name your hunting stand">
+<button class="action" onclick="saveStand()">Save Stand Location</button>
+<select id="standSelect">
+<option value="">Select saved stand</option>
+</select>
+<button class="action" onclick="analyzeStand()">Analyze Stand Wind</button>
+<p id="standResult">Wind analysis will appear here.</p>
+</div>
+<div class="card">
+<h3>Hourly Wind Forecast</h3>
+<div id="windForecast">Waiting for weather data.</div>
+</div>
+</section>
+<section id="scoutPage" class="page">
+<div class="card">
+<h2>Scouting Markers</h2>
+<p>Mark important locations on your hunting map.</p>
+<select id="scoutType">
+<option>Deer Stand</option>
+<option>Ground Blind</option>
+<option>Deer Trail</option>
+<option>Bedding Area</option>
+<option>Rub</option>
+<option>Scrape</option>
+<option>Feeder</option>
+<option>Trail Camera</option>
+<option>Food Plot</option>
+<option>Creek Crossing</option>
+<option>Turkey Sign</option>
+<option>Fishing Spot</option>
+<option>Boat Ramp</option>
+<option>Parking Area</option>
+</select>
+<textarea id="scoutNotes" placeholder="Add scouting notes"></textarea>
+<button class="action" onclick="saveScout()">Save Scouting Marker</button>
+<div id="scoutList"></div>
+</div>
+<div class="card">
+<h3>Hunting Journal</h3>
+<textarea id="journal" placeholder="Record sightings, tracks and wildlife activity"></textarea>
+<button class="action" onclick="saveJournal()">
+ Save Journal
+ <section id="harvestPage" class="page">
+<div class="card">
+<h2>Harvest Records</h2>
+<label>Species</label>
+<select id="harvestSpecies">
+<option>Whitetail Deer</option>
+<option>Mule Deer</option>
+<option>Turkey</option>
+<option>Elk</option>
+<option>Bear</option>
+<option>Wild Hog</option>
+<option>Other</option>
+</select>
+<label>Harvest Date</label>
+<input type="date" id="harvestDate">
+<label>State</label>
+<select id="harvestState"></select>
+<input id="harvestCounty" placeholder="County">
+<label>Weapon Used</label>
+<select id="harvestWeapon">
+<option>Rifle</option>
+<option>Bow</option>
+<option>Crossbow</option>
+<option>Shotgun</option>
+<option>Muzzleloader</option>
+<option>Other</option>
+</select>
+<section id="scoresPage" class="page">
+<div class="card">
+<h2>THE RACKULATOR</h2>
+<p>Whitetail Buck Antler Scoring Calculator</p>
+<p>Enter measurements in inches.</p>
+<label>Inside Spread</label>
+<input type="number" id="insideSpread" min="0" step="0.125">
+<label>Left Main Beam</label>
+<input type="number" id="leftBeam" min="0" step="0.125">
+<label>Right Main Beam</label>
+<input type="number" id="rightBeam" min="0" step="0.125">
+<h3>Left Antler Points</h3>
+<input type="number" id="leftG1" min="0" step="0.125" placeholder="G1 Brow Tine">
+<input type="number" id="leftG2" min="0" step="0.125" placeholder="G2">
+<input type="number" id="leftG3" min="0" step="0.125" placeholder="G3">
+<input type="number" id="leftG4" min="0" step="0.125" placeholder="G4">
+<input type="number" id="leftG5" min="0" step="0.125" placeholder="G5">
+<h3>Right Antler Points</h3>
+<input type="number" id="rightG1" min="0" step="0.125" placeholder="G1 Brow Tine">
+<input type="number" id="rightG2" min="0" step="0.125" placeholder="G2">
+<h3>Left Antler Circumference</h3>
+<input type="number" id="leftH1" min="0" step="0.125" placeholder="H1 Circumference">
+<input type="number" id="leftH2" min="0" step="0.125" placeholder="H2 Circumference">
+<input type="number" id="leftH3" min="0" step="0.125" placeholder="H3 Circumference">
+<input type="number" id="leftH4" min="0" step="0.125" placeholder="H4 Circumference">
+<h3>Right Antler Circumference</h3>
+<input type="number" id="rightH1" min="0" step="0.125" placeholder="H1 Circumference">
+<input type="number" id="rightH2" min="0" step="0.125" placeholder="H2 Circumference">
+<input type="number" id="rightH3" min="0" step="0.125" placeholder="H3 Circumference">
+<input type="number" id="rightH4" min="0" step="0.125" placeholder="H4 Circumference">
+<h3>Abnormal Points</h3>
+<input type="number" id="leftAbnormal" min="0" step="0.125" placeholder="Total left abnormal point length">
+<input type="number" id="rightAbnormal" min="0" step="0.125" placeholder="Total right abnormal point length">
+<button class="action" onclick="calculateBuck()">Calculate Rack Score</button>
+<div id="buckResult"></div>
+<button class="action" onclick="saveTrophy('buck')">Save Trophy</button>
+<p>Estimated scores only. Official certification requires a qualified scorer.</p>
+</div>
+<div class="card">
+<h2>GOBBLE GAUGE</h2>
+<p>Wild Turkey Trophy Scoring Calculator</p>
+<label>Turkey Weight (pounds)</label>
+<input type="number" id="turkeyWeight" min="0" step="1" placeholder="Pounds">
+<label>Additional Ounces</label>
+<input type="number" id="turkeyOunces" min="0" max="15" placeholder="Ounces">
+<label>Beard Length (inches)</label>
+<input type="number" id="turkeyBeard" min="0" step="0.0625">
+<label>Left Spur Length (inches)</label>
+<input type="number" id="leftSpur" min="0" step="0.0625">
+<label>Right Spur Length (inches)</label>
+<input type="number" id="rightSpur" min="0" step="0.0625">
+<button class="action" onclick="calculateTurkey()">Calculate Turkey Score</button>
+<div id="turkeyResult"></div>
+<button class="action" onclick="saveTrophy('turkey')">Save Turkey Trophy</button>
+<p>Estimated NWTF-style score for a single-bearded turkey. Not an official certified score.</p>
+</div>
+<div class="card">
+<h2>My Trophy Room</h2>
+<div id="trophyList"></div>
+</div>
+</section>
 
-MAP
-SCOUT
-HARVEST
-SCORES
-EXCHANGE
-PROFILE
-Hunting Map & Live Wind
-Explore all 50 states
+ <section id="exchangePage" class="page">
+<div class="card">
+<h2>BACKWOODS EXCHANGE</h2>
+<p>Buy, Sell & Trade Outdoor Gear</p>
+<select id="listingType">
+<option>For Sale</option>
+<option>For Trade</option>
+<option>Wanted</option>
+</select>
+<select id="listingCategory">
+<option>Hunting Gear</option>
+<option>Archery Equipment</option>
+<option>Fishing Gear</option>
+<option>Tree Stands & Blinds</option>
+<option>Trail Cameras</option>
+<option>Camping Equipment</option>
+<option>ATVs & UTVs</option>
+<option>Boats & Trailers</option>
+<option>Outdoor Clothing</option>
+<option>Other Outdoor Gear</option>
+</select>
+<input id="listingTitle" placeholder="Item name">
+<input type="number" id="listingPrice" min="0" placeholder="Price in dollars">
+<input id="listingLocation" placeholder="City and State">
+<textarea id="listingDescription" placeholder="Describe your item and its condition"></textarea>
+<label>Item Photo</label>
+<input type="file" id="listingPhoto" accept="image/*">
+<button class="action" onclick="saveListing()">Save Listing</button>
+</div>
+<div class="card">
+<h3>My Listings</h3>
+<div id="listingList"></div>
+</div>
+ </section>
+ section id="profilePage" class="page">
+<div class="card">
+<h2>My Backwoods Profile</h2>
+<label>Profile Name</label>
+<input id="profileName" placeholder="Your name or nickname">
+<label>Home State</label>
+<select id="profileState"></select>
+<label>Favorite Outdoor Activity</label>
+<select id="profileActivity">
+<option>Deer Hunting</option>
+<option>Turkey Hunting</option>
+<option>Bowhunting</option>
+<option>Fishing</option>
+<option>Waterfowl Hunting</option>
+<option>Trapping</option>
+<option>Camping</option>
+<option>All Outdoor Activities</option>
+</select>
+<label>About Me</label>
+<textarea id="profileBio" placeholder="Tell us about yourself"></textarea>
+<button class="action" onclick="saveProfile()">Save Profile</button>
+<p id="profileStatus"></p>
+</div>
+<div class="card">
+<h3>My Backwoods Statistics</h3>
+<div id="profileStats"></div>
+</div>
+</section>
+</main>
+<footer style="text-align:center;padding:20px;color:#d69b36">
+BACKWOODS 360°<br>
+Built for the Outdoors
+</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+function showPage(id){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+$(id).classList.add("active");
+if(id==="mapPage") setTimeout(()=>map.invalidateSize(),100);
+}
+const map=L.map("map").setView([39.5,-98.35],4);
+const street=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+maxZoom:19,
+attribution:"&copy; OpenStreetMap contributors"
+});
+const topo=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{
+maxZoom:17,
+attribution:"&copy; OpenStreetMap contributors, OpenTopoMap"
+});
+street.addTo(map);
+let currentLayer=street;
+function changeLayer(){
+map.removeLayer(currentLayer);
+currentLayer=currentLayer===street?topo:street;
+currentLayer.addTo(map);
+}
+let selectedLocation=map.getCenter();
+let locationMarker=null;
+function selectLocation(lat,lng){
+selectedLocation=L.latLng(lat,lng);
+if(locationMarker) map.removeLayer(locationMarker);
+locationMarker=L.marker(selectedLocation).addTo(map);
+}
+map.on("click",e=>selectLocation(e.latlng.lat,e.latlng.lng));
+function findLocation(){
+map.locate({setView:true,maxZoom:16});
+}
+map.on("locationfound",e=>selectLocation(e.latlng.lat,e.latlng.lng));
+map.on("locationerror",()=>alert("Please enable location permissions."));
+ const states={
+"Alabama":[32.8,-86.8],
+"Alaska":[64.2,-152.5],
+"Arizona":[34.2,-111.7],
+"Arkansas":[34.8,-92.2],
+"California":[37.2,-119.5],
+"Colorado":[39,-105.5],
+"Connecticut":[41.6,-72.7],
+"Delaware":[39,-75.5],
+"Florida":[27.8,-81.7],
+"Georgia":[32.6,-83.4],
+"Hawaii":[20.8,-156.3],
+"Idaho":[44.2,-114.5],
+"Illinois":[40,-89.2],
+"Indiana":[40,-86.1],
+"Iowa":[42,-93.5],
+"Kansas":[38.5,-98.3],
+"Kentucky":[37.5,-85.3],
+"Louisiana":[31,-92],
+"Maine":[45.2,-69],
+"Maryland":[39,-76.7],
+"Massachusetts":[42.3,-71.8],
+"Michigan":[44.3,-85.5],
+"Minnesota":[46,-94.3],
+"Mississippi":[32.7,-89.7],
+"Missouri":[38.5,-92.5],
+"Montana":[47,-110],
+"Nebraska":[41.5,-99.8],
+"Nevada":[39.3,-116.6],
+"New Hampshire":[43.7,-71.6],
+"New Jersey":[40.1,-74.5],
+"New Mexico":[34.5,-106],
+"New York":[43,-75],
+"North Carolina":[35.5,-79.8],
+"North Dakota":[47.5,-100.5],
+"Ohio":[40.3,-82.8],
+"Oklahoma":[35.5,-97.5],
+"Oregon":[44,-120.5],
+"Pennsylvania":[41,-77.5],
+"Rhode Island":[41.7,-71.5],
+"South Carolina":[33.8,-80.9],
+"South Dakota":[44.5,-100],
+"Tennessee":[35.8,-86.4],
+"Texas":[31,-99],
+"Utah":[39.3,-111.7],
+"Vermont":[44,-72.7],
+"Virginia":[37.5,-79],
+"Washington":[47.4,-120.5],
+"West Virginia":[38.6,-80.6],
+"Wisconsin":[44.5,-89.5],
+"Wyoming":[43,-107.5]
+};
+["stateSelect","harvestState","profileState"].forEach(id=>{
+Object.keys(states).forEach(name=>{
+$(id).add(new Option(name,name));
+});
+});
+function changeState(){
+const name=$("stateSelect").value;
+if(!states[name])return;
+const [lat,lng]=states[name];
+map.setView([lat,lng],name==="Alaska"?4:7);
+selectLocation(lat,lng);
+ }
+ let windArrow=null;
+function compass(deg){
+return ["N","NE","E","SE","S","SW","W","NW"][Math.round(deg/45)%8];
+}
+async function refreshWind(){
+const {lat,lng}=selectedLocation;
+$("windStatus").textContent="Loading wind conditions...";
+try{
+const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto&forecast_days=2`;
+const response=await fetch(url);
+if(!response.ok)throw new Error("Weather unavailable");
+const data=await response.json();
+const w=data.current;
+const toward=(w.wind_direction_10m+180)%360;
+$("windStatus").textContent=`Wind from ${compass(w.wind_direction_10m)} at ${w.wind_speed_10m} mph | Gusts ${w.wind_gusts_10m} mph | ${w.temperature_2m}°F | Blowing toward ${compass(toward)}`;
+if(windArrow)map.removeLayer(windArrow);
+windArrow=L.marker([lat,lng],{interactive:false,icon:L.divIcon({className:"wind-arrow",html:`<div style="font-size:42px;color:#ffb52e;text-shadow:1px 1px 3px black;transform:rotate(${toward}deg)">↑</div>`,iconSize:[42,42],iconAnchor:[21,21]})}).addTo(map);
+const forecast=$("windForecast");
+forecast.replaceChildren();
+let start=data.hourly.time.findIndex(t=>t>=w.time);
+if(start<0)start=0;
+for(let i=start;i<Math.min(start+12,data.hourly.time.length);i++){
+const row=document.createElement("p");
+row.textContent=`${data.hourly.time[i].slice(11)} | From ${compass(data.hourly.wind_direction_10m[i])} | ${data.hourly.wind_speed_10m[i]} mph`;
+forecast.appendChild(row);
+}
+}catch(error){
+$("windStatus").textContent="Wind data unavailable. Please try again.";
+}
+ }
+ function loadData(key){
+try{return JSON.parse(localStorage.getItem("bw360_"+key))||[];}catch(e){return [];}
+}
+function storeData(key,data){
+try{localStorage.setItem("bw360_"+key,JSON.stringify(data));return true;}
+catch(e){alert("Unable to save. Device storage may be full.");return false;}
+}
+let stands=loadData("stands");
+function renderStands(){
+const list=$("standSelect");
+list.replaceChildren(new Option("Select saved stand",""));
+stands.forEach((s,i)=>list.add(new Option(s.name,String(i))));
+}
+function saveStand(){
+const name=$("standName").value.trim();
+if(!name){alert("Enter a stand name.");return;}
+const stand={name,lat:selectedLocation.lat,lng:selectedLocation.lng};
+const updated=[...stands,stand];
+if(!storeData("stands",updated))return;
+stands=updated;
+L.marker([stand.lat,stand.lng]).addTo(map).bindTooltip(document.createTextNode(name));
+renderStands();
+$("standName").value="";
+alert("Stand saved successfully!");
+}
+async function analyzeStand(){
+const index=$("standSelect").value;
+if(index===""){alert("Select a saved stand.");return;}
+const stand=stands[Number(index)];
+map.setView([stand.lat,stand.lng],16);
+selectLocation(stand.lat,stand.lng);
+await refreshWind();
+$("standResult").textContent=stand.name+" | "+$("windStatus").textContent;
+}
+stands.forEach(s=>L.marker([s.lat,s.lng]).addTo(map).bindTooltip(document.createTextNode(s.name)));
+renderStands();
+ let scouts=loadData("scouts");
+let journals=loadData("journals");
+function renderRecords(id,records,format){
+const list=$(id);
+list.replaceChildren();
+if(!records.length){list.textContent="No records saved yet.";return;}
+records.slice().reverse().forEach(record=>{
+const row=document.createElement("p");
+row.textContent=format(record);
+list.appendChild(row);
+});
+}
+function renderScouts(){
+renderRecords("scoutList",scouts,s=>s.type+" | "+s.notes+" | "+s.date);
+}
+function addScoutMarker(s){
+L.circleMarker([s.lat,s.lng],{radius:8,color:"#d69b36",fillOpacity:0.8}).addTo(map).bindTooltip(document.createTextNode(s.type+" - "+s.notes));
+}
+function saveScout(){
+const scout={type:$("scoutType").value,notes:$("scoutNotes").value.trim(),lat:selectedLocation.lat,lng:selectedLocation.lng,date:new Date().toLocaleDateString()};
+const updated=[...scouts,scout];
+if(!storeData("scouts",updated))return;
+scouts=updated;
+addScoutMarker(scout);
+renderScouts();
+$("scoutNotes").value="";
+alert("Scouting marker saved!");
+}
+function renderJournals(){
+renderRecords("journalList",journals,j=>j.date+" | "+j.notes);
+}
+function saveJournal(){
+const notes=$("journal").value.trim();
+if(!notes){alert("Enter your journal notes.");return;}
+const updated=[...journals,{notes,date:new Date().toLocaleString()}];
+if(!storeData("journals",updated))return;
+journals=updated;
+renderJournals();
+$("journal").value="";
+alert("Journal entry saved!");
+}
+scouts.forEach(addScoutMarker);
+renderScouts();
+renderJournals();
+ let harvests=loadData("harvests");
+function readPhoto(id){
+return new Promise((resolve,reject)=>{
+const file=$(id).files[0];
+if(!file){resolve("");return;}
+if(file.size>2000000){reject(new Error("Choose a photo smaller than 2 MB."));return;}
+const reader=new FileReader();
+reader.onload=()=>resolve(reader.result);
+reader.onerror=()=>reject(new Error("Unable to read photo."));
+reader.readAsDataURL(file);
+});
+}
+function renderHarvests(){
+const list=$("harvestList");
+list.replaceChildren();
+if(!harvests.length)list.textContent="No harvests saved yet.";
+harvests.slice().reverse().forEach(h=>{
+const card=document.createElement("div");
+card.className="card";
+const title=document.createElement("h3");
+title.textContent=h.species;
+card.appendChild(title);
+const details=document.createElement("p");
+details.textContent=`${h.date} | ${h.county}, ${h.state} | ${h.weapon} | ${h.weight} lbs | ${h.points} points`;
+card.appendChild(details);
+const notes=document.createElement("p");
+notes.textContent=h.notes;
+card.appendChild(notes);
+if(h.photo){
+const img=document.createElement("img");
+img.src=h.photo;
+img.style.width="100%";
+img.style.borderRadius="8px";
+card.appendChild(img);
+}
+list.appendChild(card);
+});
+}
+async function saveHarvest(){
+if(!$("harvestDate").value||!$("harvestCounty").value.trim()){
+alert("Enter the harvest date and county.");return;
+}
+try{
+const photo=await readPhoto("harvestPhoto");
+const record={species:$("harvestSpecies").value,date:$("harvestDate").value,state:$("harvestState").value,county:$("harvestCounty").value,weapon:$("harvestWeapon").value,weight:$("harvestWeight").value||"Not recorded",points:$("harvestPoints").value||"N/A",notes:$("harvestNotes").value,photo};
+const updated=[...harvests,record];
+if(!storeData("harvests",updated))return;
+harvests=updated;
+renderHarvests();
+$("harvestPhoto").value="";
+alert("Harvest saved successfully!");
+}catch(e){alert(e.message);}
+}
+renderHarvests();
+ let buckScore=null;
+function num(id){
+return Math.max(0,Number($(id).value)||0);
+}
+function calculateBuck(){
+const leftBeam=num("leftBeam");
+const rightBeam=num("rightBeam");
+if(!leftBeam||!rightBeam){
+alert("Enter both main beam measurements.");return;
+}
+const spread=Math.min(num("insideSpread"),Math.max(leftBeam,rightBeam));
+let left=leftBeam;
+let right=rightBeam;
+let deductions=Math.abs(leftBeam-rightBeam);
+["G1","G2","G3","G4","G5","H1","H2","H3","H4"].forEach(point=>{
+const l=num("left"+point);
+const r=num("right"+point);
+left+=l;
+right+=r;
+deductions+=Math.abs(l-r);
+});
+const abnormal=num("leftAbnormal")+num("rightAbnormal");
+const gross=spread+left+right;
+const net=gross-deductions-abnormal;
+buckScore={gross,net,abnormal};
+$("buckResult").innerHTML=`<h3 style="color:#d69b36">RACKULATOR RESULTS</h3>
+<p>Gross Typical Score: <strong>${gross.toFixed(3)}</strong></p>
+<p>Estimated Net Typical Score: <strong>${net.toFixed(3)}</strong></p>
+<p>Gross Including Abnormal Points: ${ (gross+abnormal).toFixed(3)}</p>
+<p>Symmetry Deductions: ${deductions.toFixed(3)}</p>
+<p>Abnormal Point Deductions: ${abnormal.toFixed(3)}</p>`;
+}
+ let turkeyScore=null;
+let trophies=loadData("trophies");
+function calculateTurkey(){
+const pounds=num("turkeyWeight");
+const ounces=num("turkeyOunces");
+if(pounds<=0||ounces>15){
+alert("Enter a valid turkey weight and 0 to 15 ounces.");return;
+}
+const weight=pounds+ounces/16;
+const beard=num("turkeyBeard");
+const left=num("leftSpur");
+const right=num("rightSpur");
+const total=weight+(beard*2)+((left+right)*10);
+turkeyScore={total,weight,beard,left,right};
+$("turkeyResult").innerHTML=`<h3 style="color:#d69b36">GOBBLE GAUGE RESULTS</h3>
+<p>Total Turkey Score: <strong>${total.toFixed(3)}</strong></p>
+<p>Weight Score: ${weight.toFixed(3)}</p>
+<p>Beard Score: ${(beard*2).toFixed(3)}</p>
+<p>Spur Score: ${((left+right)*10).toFixed(3)}</p>`;
+}
+function saveTrophy(type){
+const score=type==="buck"?buckScore:turkeyScore;
+if(!score){alert("Calculate your trophy score first.");return;}
+const trophy={type,date:new Date().toLocaleDateString(),score:{...score}};
+const updated=[...trophies,trophy];
+if(!storeData("trophies",updated))return;
+trophies=updated;
+renderTrophies();
+alert("Trophy saved successfully!");
+}
+function renderTrophies(){
+renderRecords("trophyList",trophies,t=>t.type==="buck"?`Whitetail Buck | Gross: ${t.score.gross.toFixed(3)} | Net: ${t.score.net.toFixed(3)} | ${t.date}`:`Wild Turkey | Score: ${t.score.total.toFixed(3)} | ${t.date}`);
+}
+renderTrophies();
 
-Select a state
- Change Map Layer REFRESH WIND
-Street map
-+
-−
- Leaflet | © OpenStreetMap
-Select a state or refresh wind to load local conditions.
-Tap anywhere on the map to mark a hunting stand. Wind arrows point in the direction air is blowing TOWARD. Weather data requires internet access.
+ let listings=loadData("listings");
+function renderListings(){
+const list=$("listingList");
+list.replaceChildren();
+if(!listings.length)list.textContent="No listings saved yet.";
+listings.slice().reverse().forEach(item=>{
+const card=document.createElement("div");
+card.className="card";
+const title=document.createElement("h3");
+title.textContent=item.title;
+card.appendChild(title);
+const details=document.createElement("p");
+details.textContent=`${item.type} | ${item.category} | ${item.price? "$"+item.price:"Price not specified"} | ${item.location}`;
+card.appendChild(details);
+const description=document.createElement("p");
+description.textContent=item.description;
+card.appendChild(description);
+if(item.photo){
+const img=document.createElement("img");
+img.src=item.photo;
+img.style.width="100%";
+img.style.borderRadius="8px";
+card.appendChild(img);
+}
+list.appendChild(card);
+});
+}
+async function saveListing(){
+const title=$("listingTitle").value.trim();
+if(!title){alert("Enter an item name.");return;}
+try{
+const photo=await readPhoto("listingPhoto");
+const item={title,type:$("listingType").value,category:$("listingCategory").value,price:$("listingPrice").value,location:$("listingLocation").value,description:$("listingDescription").value,photo,date:new Date().toLocaleDateString()};
+const updated=[...listings,item];
+if(!storeData("listings",updated))return;
+listings=updated;
+renderListings();
+$("listingTitle").value="";
+$("listingPhoto").value="";
+alert("Listing saved successfully!");
+}catch(e){alert(e.message);}
+}
+renderListings();
+ function renderStats(){
+$("profileStats").textContent=`Saved Stands: ${stands.length} | Scouting Markers: ${scouts.length} | Journal Entries: ${journals.length} | Harvests: ${harvests.length} | Trophies: ${trophies.length} | Listings: ${listings.length}`;
+}
+function saveProfile(){
+const profile={name:$("profileName").value.trim(),state:$("profileState").value,activity:$("profileActivity").value,bio:$("profileBio").value};
+if(!profile.name){alert("Enter a profile name.");return;}
+if(!storeData("profile",profile))return;
+$("profileStatus").textContent="Profile saved successfully!";
+renderStats();
+}
+function loadProfile(){
+const p=loadData("profile");
+$("profileName").value=p.name||"";
+if(p.state)$("profileState").value=p.state;
+if(p.activity)$("profileActivity").value=p.activity;
+$("profileBio").value=p.bio||"";
+renderStats();
+}
+document.querySelectorAll("nav button").forEach(button=>button.addEventListener("click",renderStats));
+loadProfile();
+</script>
+</body>
+</html>
 
-🌬️ Stand Wind Analyzer
-
-Select a saved stand
-Hourly Wind Forecast
-Refresh wind to load the hourly forecast.
-Wind and Thermals
-Thermal behavior depends on terrain, sunlight, shade and local conditions. This section will be expanded with terrain-aware estimates. Always check actual conditions in the woods.
-
-BACKWOODS 360° | Built for the outdoors
+ 
